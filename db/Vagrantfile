@@ -1,0 +1,52 @@
+
+Vagrant.configure("2") do |config|
+  config.vm.provider "vmware_desktop" do |v|
+    v.gui = false  # Set to true if you need a GUI
+  end
+  	
+ 
+  config.vm.define "mysql-cluster" do |mysql|
+    mysql.vm.box = "koalephant/debian12"
+
+   # mysql.vm.architecture = "arm64"
+    mysql.vm.network "private_network", ip: "192.168.33.11"
+    mysql.vm.network "forwarded_port", guest: 3306, host: 3307  
+    mysql.vm.provision "shell", inline: <<-SHELL
+      apt-get update
+      apt-get install -y wget lsb-release gnupg curl mariadb-server
+      sudo sed -i 's/^bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+      sudo systemctl restart mysql
+
+      # Create MySQL user, password, and database
+      mysql -e "CREATE DATABASE laravel_db;"
+      mysql -e "CREATE USER 'laravel_user'@'%' IDENTIFIED BY 'laravel_password';"
+      mysql -e "GRANT ALL PRIVILEGES ON laravel_db.* TO 'laravel_user'@'%';"
+      mysql -e "FLUSH PRIVILEGES;"
+
+    SHELL
+  end
+
+#   config.vm.define "haproxy" do |haproxy|
+#     haproxy.vm.box = "koalephant/debian12"
+
+#    # haproxy.vm.architecture = "arm64"
+#     haproxy.vm.network "private_network", ip: "192.168.33.12"
+#     haproxy.vm.provision "shell", inline: <<-SHELL
+#       apt-get update
+#       apt-get install -y haproxy
+#       cat <<EOT >> /etc/haproxy/haproxy.cfg
+#       frontend mysql-cluster
+#         bind *:3306
+#         default_backend mysql-backend
+
+#       backend mysql-backend
+#         balance roundrobin
+#         server mysql1 192.168.33.11:3306 check
+#         server mysql2 192.168.33.12:3306 check
+#       EOT
+#       service haproxy restart
+#     SHELL
+#   end
+
+
+ end
