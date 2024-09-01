@@ -7,12 +7,13 @@ cat << 'EOF' > /home/vagrant/create_todo.sh
 cd /var/www/html/todo
 
 # Loop to create 10 todo
-for i in {1..10}
+for i in {1..2}
 do
-    # Generate a random todo 
-    TODO_ID=$(shuf -i 1000-9999 -n 1)
-    # Use Laravel's artisan tinker to create a contract using the model
-    php artisan tinker --execute="App\Todo::create(['tasks' => '$TODO_ID']);"
+    # Generate a random todo
+    php artisan tinker --execute="
+    \$faker = Faker\Factory::create();
+    App\Todo::create(['tasks' => \$faker->words(3, true)]);
+    "
 done
 EOF
 
