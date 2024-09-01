@@ -44,6 +44,12 @@ EOL'
       sed -i 's/# DB_DATABASE=.*/DB_DATABASE=laravel_db/' /var/www/html/.env
       sed -i 's/# DB_USERNAME=.*/DB_USERNAME=laravel_user/' /var/www/html/.env
       sed -i 's/# DB_PASSWORD=.*/DB_PASSWORD=laravel_password/' /var/www/html/.env
+          # Update .env file for Redis configuration
+      sed -i 's/^REDIS_HOST=.*/REDIS_HOST=192.168.33.15/' /var/www/html/.env && \
+      sed -i 's/^REDIS_PORT=.*/REDIS_PORT=6379/' /var/www/html/.env && \
+      sed -i 's/^REDIS_PASSWORD=.*/REDIS_PASSWORD=null/' /var/www/html/.env && \
+      sed -i 's/^REDIS_CLIENT=.*/REDIS_CLIENT=phpredis/' /var/www/html/.env
+      
       sudo chmod -R 0777 /var/www/html/storage
       sudo chmod -R 0777 /var/www/html/bootstrap
       # Run Laravel migrations

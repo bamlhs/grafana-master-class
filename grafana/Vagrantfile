@@ -9,19 +9,74 @@ Vagrant.configure("2") do |config|
 
     #monitor.vm.architecture = "arm64"
     monitor.vm.network "private_network", ip: "192.168.33.13"
-      redis.vm.network "forwarded_port", guest: 3000, host: 3000
+    monitor.vm.network "forwarded_port", guest: 3000, host: 3000
+    monitor.vm.network "forwarded_port", guest: 9090, host: 9090
 
-#     monitor.vm.provision "shell", inline: <<-SHELL
-#       apt-get update
-#       apt-get install -y prometheus grafana mysql-client apache2-utils
-#       wget https://github.com/prometheus/mysqld_exporter/releases/download/v0.11.0/mysqld_exporter-0.11.0.linux-amd64.tar.gz
-#       tar xvfz mysqld_exporter-0.11.0.linux-amd64.tar.gz
-#       mv mysqld_exporter-0.11.0.linux-amd64/mysqld_exporter /usr/local/bin/
-#       echo "starting prometheus and grafana"
-#       systemctl start prometheus
-#       systemctl enable prometheus
-#       systemctl start grafana-server
-#       systemctl enable grafana-server
-#     SHELL
-#   end
+    monitor.vm.provision "shell", inline: <<-SHELL
+      # Update package index and install dependencies
+      sudo apt-get update
+      sudo apt-get install -y wget tar
+
+      # Download Prometheus
+      wget https://github.com/prometheus/prometheus/releases/download/v2.54.1/prometheus-2.54.1.linux-arm64.tar.gz
+
+      # Extract the tarball
+        mkdir prometheus
+        tar -xvf prometheus-*.tar.gz -C prometheus
+        mv prometheus/prometheus-*/** prometheus/
+        rmdir prometheus/prometheus-*/
+
+
+      # Move Prometheus files to /usr/local/bin
+      sudo mv prometheus/prometheus /usr/local/bin/
+      sudo mv prometheus/promtool /usr/local/bin/
+
+      # Create Prometheus directories
+      sudo mkdir /etc/prometheus
+      sudo mkdir /var/lib/prometheus
+
+      # Move configuration files
+      sudo mv prometheus/consoles /etc/prometheus
+      sudo mv prometheus/console_libraries /etc/prometheus
+      sudo mv prometheus/prometheus.yml /etc/prometheus/prometheus.yml
+
+      # Create a Prometheus systemd service file
+      sudo bash -c 'cat > /etc/systemd/system/prometheus.service <<EOL
+      [Unit]
+      Description=Prometheus
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=root
+      ExecStart=/usr/local/bin/prometheus \
+        --config.file /etc/prometheus/prometheus.yml \
+        --storage.tsdb.path /var/lib/prometheus/ \
+        --web.console.templates=/etc/prometheus/consoles \
+        --web.console.libraries=/etc/prometheus/console_libraries
+
+      [Install]
+      WantedBy=multi-user.target
+      '
+
+      # Reload systemd and start Prometheus
+      sudo systemctl daemon-reload
+      sudo systemctl start prometheus
+      sudo systemctl enable prometheus
+      # Add Grafana APT repository
+      sudo apt-get install -y software-properties-common
+      wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+      sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+
+      # Install Grafana
+      sudo apt-get update
+      sudo apt-get install -y grafana
+
+      # Start Grafana service
+
+      sudo systemctl start grafana-server
+      sudo systemctl enable grafana-server
+
+    SHELL
+  end
  end
