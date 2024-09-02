@@ -110,3 +110,47 @@ Now we have to update the prometheus.yml
 ```
 then restart the service
 `systemctl restart prometheus`
+
+
+
+
+To enable the Alert Rules 
+```
+cd grafana
+
+ vagrant scp  ../scripts/rules :~
+ vagrant ssh
+sudo mv rules  /etc/prometheus
+
+update the prometheus.yml
+```
+
+rule_files:
+  - "rules/node_alert.rules.yml"
+  - "rules/mysqld_alert.rules.yml"
+  - "rules/redis_alert.rules.yaml"
+```
+
+then restart the service
+`systemctl restart prometheus`
+
+
+
+to test the max connection 
+
+```
+
+#!/bin/bash
+
+# Number of connections to simulate
+CONNECTIONS=80
+
+for i in $(seq 1 $CONNECTIONS); do
+  mysql -e "SELECT SLEEP(300);" &
+done
+
+
+```
+
+to stop 
+`ps aux | grep "max"`
