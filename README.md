@@ -2,7 +2,7 @@
 
 This project aimed to run on Mac M1 using vmware_desktop
 
-Vagrant main commands
+# Vagrant main commands
 
 ```
 vagrant global-status
@@ -11,16 +11,20 @@ vagrant destroy
 vagrant provision
 ```
 
-To install SCP
+# To install SCP
 `vagrant plugin install vagrant-scp`
 
+
+# Setup Cron Job
 ```
 cd app
  vagrant scp ../scripts/setup_cronjob.sh :~
-
+ vagrant ssh
+ chmod a+x ~/setup_cronjob.sh
+ ~/./setup_cronjob.sh
 ```
 
-to Install Node exporter
+# Install Node exporter
 
 ```
  vagrant scp ../scripts/install_node_exporter.sh :~
@@ -32,7 +36,7 @@ curl http://localhost:9100/metrics
 
 ```
 
-to Install mysql exporter
+# Install mysql exporter
 
 ```
 cd db
@@ -43,7 +47,7 @@ cd db
 curl http://localhost:9104/metrics
 ```
 
-to Install redis exporter
+# Install redis exporter
 
 ```
 cd redis
@@ -54,7 +58,7 @@ cd redis
 curl http://localhost:9121/metrics
 ```
 
-to fix the time sync issue
+# Fix the time sync issue
 
 ```
 sudo apt-get update
@@ -64,7 +68,7 @@ sudo systemctl enable chrony
 sudo chronyc makestep
 ```
 
-to add custom metric to db
+# Add custom metric to db
 
 ```
 cd db
@@ -86,6 +90,10 @@ add in `/etc/systemd/system/node_exporter.service`
 sudo systemctl daemon-reload
 sudo systemctl restart node_exporter
 ```
+
+
+
+# Setup prometheus
 
 Now we have to update the prometheus.yml
 
@@ -112,7 +120,7 @@ Now we have to update the prometheus.yml
 then restart the service
 `systemctl restart prometheus`
 
-To enable the Alert Rules
+# Enable the Alert Rules
 
 ```
 cd grafana
@@ -136,7 +144,7 @@ then restart the service
 
 
 
-to test the max connection
+# Test the max connection
 
 ```
 #!/bin/bash
